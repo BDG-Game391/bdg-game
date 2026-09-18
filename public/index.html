@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDG Game - Prediction</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #121212; color: #fff; margin-top: 30px; }
+        .card { background: #1e1e1e; padding: 20px; display: inline-block; border-radius: 10px; width: 320px; }
+        .timer { font-size: 35px; color: #ff9800; font-weight: bold; margin: 15px 0; }
+        .btn { padding: 10px 20px; font-size: 18px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-big { background: #4CAF50; color: white; }
+        .btn-small { background: #f44336; color: white; }
+        .wallet { background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 18px; color: #00bcd4; }
+    </style>
+</head>
+<body>
+    <div class="card" id="loginBox">
+        <h2>Login to Play</h2>
+        <input type="text" id="usernameInput" placeholder="Enter your name" style="padding: 10px; width: 80%; margin-bottom: 10px;"><br>
+        <button class="btn btn-big" onclick="login()">Start Game</button>
+    </div>
+
+    <div class="card" id="gameBox" style="display: none;">
+        <h2>BDG Game</h2>
+        <div class="wallet">Balance: ₹<span id="userBalance">0</span></div>
+        <div class="timer" id="timerDisplay">30s</div>
+        <div>
+            <button class="btn btn-big" onclick="placeBet('Big')">BET BIG</button>
+            <button class="btn btn-small" onclick="placeBet('Small')">BET SMALL</button>
+        </div>
+        <div id="resultDisplay" style="margin-top: 15px; color: #ffeb3b;">Waiting for round...</div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let myUsername = '';
+
+        function login() {
+            myUsername = document.getElementById('usernameInput').value.trim();
+            if (!myUsername) return alert('Naam daalna zaroori hai!');
+            
+            socket.emit('loginUser', myUsername);
+            document.getElementById('loginBox').style.display = 'none';
+            document.getElementById('gameBox').style.display = 'inline-block';
+        }
+
+        socket.on('balanceUpdate', (bal) => {
+            document.getElementById('userBalance').innerText = bal;
+        });
+
+        socket.on('refreshBalance', (data) => {
+            if (data.username === myUsername) {
+                document.getElementById('userBalance').innerText = data.balance;
+            }
+        });
+
+        socket.on('timerUpdate', (data) => {
+            document.getElementById('timerDisplay').innerText = data.countdown + 's';
+        });
+
+        socket.on('roundResult', (data) => {
+            document.getElementById('resultDisplay').innerText = 'Winner: ' + data.result;
+        });
+
+        function placeBet(type) {
+            alert('Bet placed on ' + type);
+        }
+    </script>
+</body>
+</html>
